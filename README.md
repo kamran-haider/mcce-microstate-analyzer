@@ -1,1 +1,1 @@
-# mcce-mircostate-analyzer
+# mcce-microstate-analyzer

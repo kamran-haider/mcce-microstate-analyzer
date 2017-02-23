@@ -1,13 +1,16 @@
 """Some utility functions for microstate hydrogen bond analysis.
 """
+from __future__ import print_function
 
 # Globals
 import sys
 import time
 from functools import wraps
 
-GROTTHUSS = ["GLU", "ASP", "SER", "THR", "HIS", "TYR"]
+GROTTHUSS = ["GLU", "ASP", "SER", "THR", "HIS", "TYR", "ASN", "GLN", "HOH", "PAA", "PDD"]
 
+def is_grotthuss(residue):
+    return residue in GROTTHUSS
 
 # Functions
 def function_timer(function):
@@ -17,9 +20,36 @@ def function_timer(function):
         result = function(*args, **kwargs)
         t1 = time.time()
         print("Total time running %s: %2.2f seconds" %
-              (function.func_name, t1 - t0))
+              (function.__name__, t1 - t0))
         return result
     return function_timer
+
+def print_progress_bar (count, total):
+    """
+    Create and update progress bar during a loop.
+    
+    Parameters
+    ----------
+    iteration : int
+        The number of current iteration, used to calculate current progress. 
+    total : int
+        Total number of iterations
+    
+    Notes
+    -----
+        Based on:
+        http://stackoverflow.com/questions/3173320/text-progress-bar-in-the-console
+    """
+    bar_len = 60
+    filled_len = int(round(bar_len * count / float(total)))
+
+    percents = round(100.0 * count / float(total), 1)
+    bar = u"\u2588" * filled_len + '-' * (bar_len - filled_len)
+
+    sys.stdout.write('Progress |%s| %s%s Done\r' % (bar, percents, '%'))
+    sys.stdout.flush()  # As suggested by Rom Ruben
+    if count == total: 
+        print()
 
 
 
@@ -41,7 +71,8 @@ def generate_cluster_dictionary(sub_state):
     "EXT" : ['HISA0093', 'SERA0156', 'THRA0187', 'SERA0168', 'THRA0100',
             'TYRB0262', 'SERA0186', 'GLUA0182', 'ASPA0188', 'ASPA0485', 'GLUA0488'],
     "GLU" : ["GLUA0286"],
-    "EXT_EXP" : ['HISA0093', 'SERA0168', 'GLUA0182', 'ASPA0188', 'ASPA0485', 'GLUA0488']
+    "EXT_EXP" : ['HISA0093', 'GLUA0182', 'ASPA0188', 'ASPA0485', 'GLUA0488'],
+    "EXT_INT" : ['SERA0168', 'THRA0100']
     }
 
     if sub_state not in ["f1", "f2", "f4"]:
@@ -50,7 +81,7 @@ def generate_cluster_dictionary(sub_state):
     if sub_state == "f1" or sub_state == "f4":
         return clust_dict
     else:
-        for k in clust_dict.keys():
+        for k in list(clust_dict.keys()):
             updated_cluster_residues = []
             for res in clust_dict[k]:
                 if res[3] == "A":
@@ -64,7 +95,6 @@ def generate_cluster_dictionary(sub_state):
             clust_dict[k] = updated_cluster_residues
         return clust_dict
 
-@function_timer
 def generate_path_pdb(conformers, source_pdb, prefix= "path"):
     """generate a pdb file from path data
     

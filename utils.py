@@ -47,7 +47,7 @@ def print_progress_bar (count, total):
     bar = u"\u2588" * filled_len + '-' * (bar_len - filled_len)
 
     sys.stdout.write('Progress |%s| %s%s Done\r' % (bar, percents, '%'))
-    sys.stdout.flush()  # As suggested by Rom Ruben
+    sys.stdout.flush() 
     if count == total: 
         print()
 
